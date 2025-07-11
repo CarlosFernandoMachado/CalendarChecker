@@ -22,13 +22,12 @@ ICAL_CONFIG_JSON = os.getenv('ICAL_CONFIG_JSON')
 
 # Validate that the environment variables are loaded correctly
 if not TARGET_CALENDAR_ID or not ICAL_CONFIG_JSON:
-    raise ValueError("Error: Please create a .env file and set TARGET_CALENDAR_ID and ICAL_CONFIG_JSON.")
+    raise ValueError("Error: Environment variables TARGET_CALENDAR_ID and ICAL_CONFIG_JSON must be set.")
 
 try:
     ICAL_CONFIG = json.loads(ICAL_CONFIG_JSON)
 except json.JSONDecodeError:
-    raise ValueError(
-        "Error: ICAL_CONFIG_JSON in the .env file is not valid JSON. Please ensure it's a single line and properly quoted.")
+    raise ValueError("Error: ICAL_CONFIG_JSON in the .env file is not valid JSON.")
 
 
 def get_google_calendar_service():
@@ -40,9 +39,8 @@ def get_google_calendar_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
+            # This part should not run on a server. A valid token.json must exist.
+            raise Exception("Error: token.json is missing or invalid. Please generate it locally first.")
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
     return build('calendar', 'v3', credentials=creds)

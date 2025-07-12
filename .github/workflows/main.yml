@@ -3,7 +3,7 @@ name: Sync Airbnb Calendars
 on:
   # This allows you to run the workflow manually from the Actions tab
   workflow_dispatch:
-
+  
   # This schedules the workflow to run automatically
   schedule:
     # Runs every 4 hours. You can change the schedule using cron syntax.
@@ -29,7 +29,9 @@ jobs:
       - name: Create .env file from secrets
         run: |
           echo "TARGET_CALENDAR_ID=${{ secrets.TARGET_CALENDAR_ID }}" > .env
-          echo "ICAL_CONFIG_JSON=${{ secrets.ICAL_CONFIG_JSON }}" >> .env
+          # FIX: This line now cleans the secret, removing leading/trailing single quotes
+          echo "ICAL_CONFIG_JSON=$(echo ${{ secrets.ICAL_CONFIG_JSON }} | sed "s/^'//;s/'$//")" >> .env
+
 
       - name: Create credentials.json from secret
         run: echo "${{ secrets.CREDENTIALS_JSON }}" > credentials.json
@@ -38,4 +40,5 @@ jobs:
         run: echo "${{ secrets.TOKEN_JSON }}" > token.json
 
       - name: Run the sync script
-        run: python main.py # Make sure this filename matches yours
+        # Make sure this filename matches the one in your repository
+        run: python ical_merger_github.py 

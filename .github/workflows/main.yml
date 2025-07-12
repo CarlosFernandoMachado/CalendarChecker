@@ -7,7 +7,7 @@ on:
   # This schedules the workflow to run automatically
   schedule:
     # Runs every 4 hours. You can change the schedule using cron syntax.
-    - cron: '0 */1 * * *'
+    - cron: '0 */4 * * *'
 
 jobs:
   sync:
@@ -26,19 +26,38 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # FIX: The next steps create the necessary files directly from secrets,
-      # which is more reliable than creating a .env file.
-      - name: Create credentials.json from secret
-        run: echo "${{ secrets.CREDENTIALS_JSON }}" > credentials.json
-
-      - name: Create token.json from secret
-        run: echo "${{ secrets.TOKEN_JSON }}" > token.json
-
       - name: Create .env file from secrets
         run: |
           echo "TARGET_CALENDAR_ID='${{ secrets.TARGET_CALENDAR_ID }}'" > .env
           echo "ICAL_CONFIG_JSON='${{ secrets.ICAL_CONFIG_JSON }}'" >> .env
 
+      - name: Create credentials.json from secret
+        env:
+          CREDENTIALS_JSON_DATA: ${{ secrets.CREDENTIALS_JSON }}
+        shell: python
+        run: |
+          import os
+          import json
+          
+          secret_data = os.environ['CREDENTIALS_JSON_DATA']
+          with open('credentials.json', 'w') as f:
+              # We write the raw string, assuming it's valid JSON
+              f.write(secret_data)
+
+      - name: Create token.json from secret
+        env:
+          TOKEN_JSON_DATA: ${{ secrets.TOKEN_JSON }}
+        shell: python
+        run: |
+          import os
+          import json
+
+          secret_data = os.environ['TOKEN_JSON_DATA']
+          with open('token.json', 'w') as f:
+              # We write the raw string, assuming it's valid JSON
+              f.write(secret_data)
+
       - name: Run the sync script
+        # The script will now find the .env, credentials.json, and token.json files
         # Make sure this filename matches the one in your repository
-        run: python main.py
+        run: python ical_merger_github.py

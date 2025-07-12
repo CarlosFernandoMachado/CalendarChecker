@@ -7,7 +7,7 @@ on:
   # This schedules the workflow to run automatically
   schedule:
     # Runs every 4 hours. You can change the schedule using cron syntax.
-    - cron: '0 */4 * * *'
+    - cron: '0 */1 * * *'
 
 jobs:
   sync:

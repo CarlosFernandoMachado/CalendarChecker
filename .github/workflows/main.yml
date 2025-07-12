@@ -26,38 +26,62 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create .env file from secrets
-        run: |
-          echo "TARGET_CALENDAR_ID='${{ secrets.TARGET_CALENDAR_ID }}'" > .env
-          echo "ICAL_CONFIG_JSON='${{ secrets.ICAL_CONFIG_JSON }}'" >> .env
-
+      # FIX: The next steps create the necessary files directly from secrets,
+      # which is more reliable than creating a .env file.
       - name: Create credentials.json from secret
-        env:
-          CREDENTIALS_JSON_DATA: ${{ secrets.CREDENTIALS_JSON }}
-        shell: python
-        run: |
-          import os
-          import json
-          
-          secret_data = os.environ['CREDENTIALS_JSON_DATA']
-          with open('credentials.json', 'w') as f:
-              # We write the raw string, assuming it's valid JSON
-              f.write(secret_data)
+        run: echo "${{ secrets.CREDENTIALS_JSON }}" > credentials.json
 
       - name: Create token.json from secret
-        env:
-          TOKEN_JSON_DATA: ${{ secrets.TOKEN_JSON }}
-        shell: python
-        run: |
-          import os
-          import json
-
-          secret_data = os.environ['TOKEN_JSON_DATA']
-          with open('token.json', 'w') as f:
-              # We write the raw string, assuming it's valid JSON
-              f.write(secret_data)
+        run: echo "${{ secrets.TOKEN_JSON }}" > token.json
 
       - name: Run the sync script
-        # The script will now find the .env, credentials.json, and token.json files
+        # Pass the other secrets as environment variables directly to the Python script.
+        # The Python script is already set up to read these.
+        env:
+          TARGET_CALENDAR_ID: ${{ secrets.TARGET_CALENDAR_ID }}
+          ICAL_CONFIG_JSON: ${{ secrets.ICAL_CONFIG_JSON }}
+        # Make sure this filename matches the one in your repository
+        run: python main.pyname: Sync Airbnb Calendars
+
+on:
+  # This allows you to run the workflow manually from the Actions tab
+  workflow_dispatch:
+  
+  # This schedules the workflow to run automatically
+  schedule:
+    # Runs every 4 hours. You can change the schedule using cron syntax.
+    - cron: '0 */1 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # FIX: The next steps create the necessary files directly from secrets,
+      # which is more reliable than creating a .env file.
+      - name: Create credentials.json from secret
+        run: echo "${{ secrets.CREDENTIALS_JSON }}" > credentials.json
+
+      - name: Create token.json from secret
+        run: echo "${{ secrets.TOKEN_JSON }}" > token.json
+
+      - name: Run the sync script
+        # Pass the other secrets as environment variables directly to the Python script.
+        # The Python script is already set up to read these.
+        env:
+          TARGET_CALENDAR_ID: ${{ secrets.TARGET_CALENDAR_ID }}
+          ICAL_CONFIG_JSON: ${{ secrets.ICAL_CONFIG_JSON }}
         # Make sure this filename matches the one in your repository
         run: python main.py

@@ -41,4 +41,4 @@ jobs:
 
       - name: Run the sync script
         # Make sure this filename matches the one in your repository
-        run: python ical_merger_github.py 
+        run: python main.py 

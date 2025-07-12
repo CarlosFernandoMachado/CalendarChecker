@@ -60,4 +60,4 @@ jobs:
       - name: Run the sync script
         # The script will now find the .env, credentials.json, and token.json files
         # Make sure this filename matches the one in your repository
-        run: python ical_merger_github.py
+        run: python  main.py

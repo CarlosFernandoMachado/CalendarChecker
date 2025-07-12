@@ -26,13 +26,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create .env file from secrets
-        run: |
-          echo "TARGET_CALENDAR_ID=${{ secrets.TARGET_CALENDAR_ID }}" > .env
-          # FIX: This line now cleans the secret, removing leading/trailing single quotes
-          echo "ICAL_CONFIG_JSON=$(echo ${{ secrets.ICAL_CONFIG_JSON }} | sed "s/^'//;s/'$//")" >> .env
-
-
+      # FIX: The next steps create the necessary files directly from secrets,
+      # which is more reliable than creating a .env file.
       - name: Create credentials.json from secret
         run: echo "${{ secrets.CREDENTIALS_JSON }}" > credentials.json
 
@@ -40,5 +35,10 @@ jobs:
         run: echo "${{ secrets.TOKEN_JSON }}" > token.json
 
       - name: Run the sync script
+        # Pass the other secrets as environment variables directly to the Python script.
+        # The Python script is already set up to read these.
+        env:
+          TARGET_CALENDAR_ID: ${{ secrets.TARGET_CALENDAR_ID }}
+          ICAL_CONFIG_JSON: ${{ secrets.ICAL_CONFIG_JSON }}
         # Make sure this filename matches the one in your repository
-        run: python main.py 
+        run: python main.py

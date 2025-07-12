@@ -26,38 +26,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create .env file from secrets
-        run: |
-          echo "TARGET_CALENDAR_ID='${{ secrets.TARGET_CALENDAR_ID }}'" > .env
-          echo "ICAL_CONFIG_JSON='${{ secrets.ICAL_CONFIG_JSON }}'" >> .env
-
+      # This step creates the credentials.json file using a reliable Python command
       - name: Create credentials.json from secret
         env:
           CREDENTIALS_JSON_DATA: ${{ secrets.CREDENTIALS_JSON }}
         shell: python
         run: |
           import os
-          import json
-          
           secret_data = os.environ['CREDENTIALS_JSON_DATA']
           with open('credentials.json', 'w') as f:
-              # We write the raw string, assuming it's valid JSON
               f.write(secret_data)
 
+      # This step creates the token.json file using a reliable Python command
       - name: Create token.json from secret
         env:
           TOKEN_JSON_DATA: ${{ secrets.TOKEN_JSON }}
         shell: python
         run: |
           import os
-          import json
-
           secret_data = os.environ['TOKEN_JSON_DATA']
           with open('token.json', 'w') as f:
-              # We write the raw string, assuming it's valid JSON
               f.write(secret_data)
 
       - name: Run the sync script
-        # The script will now find the .env, credentials.json, and token.json files
+        # This step passes the other secrets directly to the script as environment
+        # variables, which is safer than using a .env file in this context.
+        env:
+          TARGET_CALENDAR_ID: ${{ secrets.TARGET_CALENDAR_ID }}
+          ICAL_CONFIG_JSON: ${{ secrets.ICAL_CONFIG_JSON }}
         # Make sure this filename matches the one in your repository
-        run: python  main.py
+        run: python main.py
